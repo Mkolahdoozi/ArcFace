@@ -42,3 +42,4 @@ optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
 For questions and feedback, contact me at 19mk73@queensu.ca
+Also, see our amazing group at: https://www.aiimlab.com/
