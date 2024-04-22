@@ -1,14 +1,17 @@
 # ArcFace
-This repo provides TensorFlow 2.X implementation of the famous ArcFace loss for face idnetification. The original paper can be found here:
+This repo provides TensorFlow 2.X implementation of the famous ArcFace loss for face identification. The original paper can be found here:
 
 https://arxiv.org/abs/1801.07698
 
-The official MXNet implemetation can also be found in: 
+The official MXNet implementation can also be found in: 
 
 https://github.com/deepinsight/insightface
 
 However, MXNet is retired: 
 https://mxnet.apache.org/versions/1.9.1/
+
+Also, there are other implementations for tensorflow as well, however, they are not aplug-n-play layer:
+https://github.com/yinguobing/arcface
 
 
 ## How to Use
@@ -42,4 +45,5 @@ optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
 For questions and feedback, contact me at 19mk73@queensu.ca
+
 Also, see our amazing group at: https://www.aiimlab.com/
