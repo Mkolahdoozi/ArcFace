@@ -54,19 +54,18 @@ class ArcFaceLayer(keras.layers.Layer):
 
 # keras.Sequential([base_model(), ArcFaceLayer()]) # ArcFaceLayer acts as a dense layer.
 
-# if you are planning to use model.fit() API, simple pass ArcFaceLoss to the model.compile(). Example:
+# if you are planning to use model.fit() API, simply pass ArcFaceLoss to the model.compile(). Example:
 
 # model.compile(loss=ArcFaceLoss())
 
-# if you are planning you write a training loop from scratch, you have to call an object of a ArcFaceLoss class inside
-# your training loop, under the with tf.GradientTape() as tape: Example:
+# if you are planning to write a training loop from scratch, you have to call an object of a ArcFaceLoss class inside
+# your training loop, under the with tf.GradientTape() as tape. Example:
 
 # with tf.GradientTape() as tape:
 #   loss = ArcFaceLoss_object(y_true, y_pred)
 
-# In the above code y_true is one-hot encoded labels, y_pred is the output of ArcFaceLayer() (last layer of the model)
-# and ArcFaceLoss_object is the object of the ArcFaceLoss class.
-
+# In the above code y_true is one-hot encoded labels (it must be a one-hot encoded matrix), y_pred is the output of
+# ArcFaceLayer() (last layer of the model) and ArcFaceLoss_object is the object of the ArcFaceLoss class.
 class ArcFaceLoss(keras.losses.Loss):
     def __init__(self, margin=0.5, s=64, name='arc_face_loss', **kwargs):
         super(ArcFaceLoss, self).__init__(name, **kwargs)
@@ -76,26 +75,27 @@ class ArcFaceLoss(keras.losses.Loss):
     @tf.function
     def call(self, y_true, y_pred):
 
-        W = tf.math.l2_normalize(self.W, axis=0)
-        inputs = tf.math.l2_normalize(inputs, axis=-1)
-        inputs = tf.math.multiply(inputs, self.s)
+        cos_theta = tf.math.divide(y_pred, self.s)
 
-        cos_theta = tf.math.divide(tf.linalg.matmul(inputs, W), self.s)
         sin_theta = tf.math.sqrt(tf.clip_by_value(tf.math.subtract(1, tf.math.square(cos_theta)), clip_value_min=0,
                                                   clip_value_max=1))
 
         # cos (theta + margin) = cos(theta)cos(margin)-sin(theta)sin(margin)
-
         beta = tf.math.multiply(cos_theta, tf.math.cos(self.margin)) - tf.math.multiply(sin_theta,
                                                                                         tf.math.sin(self.margin))
 
-        # to make sure that cos(theta+margin) is monotonically deacreading when theta is in [0, pi] radians
+        # to make sure that cos(theta+margin) is monotonically decreasing when theta is in [0, pi] radians
         # you can see the issue here: https://github.com/deepinsight/insightface/issues/108
-
         threshold = tf.math.cos(pi - self.margin)
 
         beta_safe = tf.where(cos_theta > threshold,
                              beta,
                              cos_theta - tf.math.multiply(tf.math.sin(pi - self.margin) * self.margin))
+
+        cosine_logits = tf.where(y_true, tf.multiply(beta_safe, self.s), tf.multiply(cos_theta, self.s))
+
+        return tf.nn.softmax_cross_entropy_with_logits(y_true, cosine_logits)
+
+
 
 
