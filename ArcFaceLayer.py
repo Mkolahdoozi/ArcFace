@@ -3,15 +3,14 @@ import tensorflow as tf
 from math import pi
 
 
+# ArcFaceLayer acts as a fully connected layer! In addition, it is applying some normalizations that is necessary for
+# computing Arc Face loss. Please use this layer as the last layer of your model, the output of which you use
+# to do the predictions.
 class ArcFaceLayer(keras.layers.Layer):
-    def __init__(self, margin=0.5, s=64, num_classes=3, **kwargs):
+    def __init__(self, num_classes=3, **kwargs):
         super(ArcFaceLayer, self).__init__(**kwargs)
 
-        # margin parameter controls the extent of angular penalty. The default value is 0.5 in the paper
-        # s parameter (scale) is a parameter that controls the norm of the input. The default is 64 in the paper.
-        # num_classes is the number of the logit outputs (classes)
-        self.margin = margin
-        self.s = s
+        # number of the classes for the model
         self.num_classes = num_classes
 
     def build(self, input_shape):
@@ -20,6 +19,63 @@ class ArcFaceLayer(keras.layers.Layer):
 
     @tf.function
     def call(self, inputs):
+        W = tf.math.l2_normalize(self.W, axis=0)
+        inputs = tf.math.l2_normalize(inputs, axis=-1)
+        inputs = tf.math.multiply(inputs, self.s) # making the norm od inputs equal to s
+
+        # cos_theta is the output of this layer. Each entry o_ij in the output is equal to s*cos(theta_ij)
+        # where s is the scale and theta_ij is the dot product of x_i (ith sample in the input batch) and w_j (jth
+        # column of the weigh matrix).
+        cos_theta = tf.linalg.matmul(inputs, W)
+
+        return cos_theta
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# This implements the famous Arc Face loss in TF v 2.X. The paper can be found in : https://arxiv.org/abs/1801.07698
+# This loss works as expected if you use the implemented ArcFaceLayer as the last layer of your model!
+# example:
+
+# keras.Sequential([base_model(), ArcFaceLayer()]) # ArcFaceLayer acts as a dense layer.
+
+# if you are planning to use model.fit() API, simple pass ArcFaceLoss to the model.compile(). Example:
+
+# model.compile(loss=ArcFaceLoss())
+
+# if you are planning you write a training loop from scratch, you have to call an object of a ArcFaceLoss class inside
+# your training loop, under the with tf.GradientTape() as tape: Example:
+
+# with tf.GradientTape() as tape:
+#   loss = ArcFaceLoss_object(y_true, y_pred)
+
+# In the above code y_true is one-hot encoded labels, y_pred is the output of ArcFaceLayer() (last layer of the model)
+# and ArcFaceLoss_object is the object of the ArcFaceLoss class.
+
+class ArcFaceLoss(keras.losses.Loss):
+    def __init__(self, margin=0.5, s=64, name='arc_face_loss', **kwargs):
+        super(ArcFaceLoss, self).__init__(name, **kwargs)
+        self.margin = margin
+        self.s = s
+
+    @tf.function
+    def call(self, y_true, y_pred):
+
         W = tf.math.l2_normalize(self.W, axis=0)
         inputs = tf.math.l2_normalize(inputs, axis=-1)
         inputs = tf.math.multiply(inputs, self.s)
