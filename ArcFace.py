@@ -21,7 +21,7 @@ class ArcFaceLayer(keras.layers.Layer):
     def call(self, inputs):
         W = tf.math.l2_normalize(self.W, axis=0)
         inputs = tf.math.l2_normalize(inputs, axis=-1)
-        inputs = tf.math.multiply(inputs, self.s) # making the norm od inputs equal to s
+        inputs = tf.math.multiply(inputs, self.s)  # making the norm of inputs equal to s
 
         # cos_theta is the output of this layer. Each entry o_ij in the output is equal to s*cos(theta_ij)
         # where s is the scale and theta_ij is the dot product of x_i (ith sample in the input batch) and w_j (jth

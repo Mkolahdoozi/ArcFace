@@ -10,7 +10,7 @@ https://github.com/deepinsight/insightface
 However, MXNet is retired: 
 https://mxnet.apache.org/versions/1.9.1/
 
-Also, there are other implementations for tensorflow as well, however, they are not a plug-n-play layer:
+Also, there are other implementations for tensorflow as well; however, they are not a plug-n-play layer:
 https://github.com/yinguobing/arcface
 
 
@@ -18,34 +18,49 @@ https://github.com/yinguobing/arcface
 You need to use the implemented ArcFaceLayer() as the last layer in your model and add the implemented ArcFaceLoss in the
 model.compile(). That's it! 
 
-ArcFaceLayer() implements a fully connected layer, as described in the paper, along with some normalizations which is essential to calculate ArcFaceLoss.
+ArcFaceLayer() implements a fully connected layer, as described in the paper, along with some normalizations which are essential to calculate ArcFaceLoss.
 
-ArcFaceLoss provides you with the arc face loss, implemented as the original paper.
+ArcFaceLoss provides you with the arc face loss, implemented in accordance with the original paper.
 
-If you are planning to use Sequential API, here is the example how you can use the ArcFaceLayer and ArcFaceLoss:
+If you are planning to use Sequential API, here is an example on how you can use the ArcFaceLayer and ArcFaceLoss:
 
 ```python
 # here base_model does not have the last fully connected layer. Rather, ArcFaceLayer acts as a fully connected layer.
-model = keras.Sequential(
+from ArcFace import ArcFaceLayer, ArcFaceLoss
+
+model = keras.Sequential([
         base_model(),
-        ArcFaceLayer()
-    ]
+        ArcFaceLayer(num_classes=3)
+    ])
+
+model.compile(loss=ArcFaceLoss())
+model.fit(x, y, epochs=100)
 ```
 
-## How to Train Your Model with ArcFaceLayer()
-If you are using model.fit() API to train the model, you don't have to be worry about anything! Just add the ArcFace() to your base model as the above and model.fit() will take care of everything.
-
-If you are writing a training loop from scratch, or customizing training_step(), you have to take care of the added Arc Face loss as the following:
+If you are writing a training loop from scratch, or customizing training_step(), you have to 
+take care of the ArcFaceLayer and ArcFaceLoss manually. Here is an example:
 
 ```python
-with tf.GradientTape() as tape:
+from ArcFace import ArcFaceLayer, ArcFaceLoss
 
-  # Arc Face loss will be available in self.losses attribute, so just add it to other losses you are employing!
-  # Here 'loss' represents the other losses you are using.
-  loss = tf.math.add(loss, tf.math.add_n(self.losses))
+inputs = keras.Input(shape=(input_shape))
+x = base_model(input)
+arcface_layer = ArcFaceLayer(num_classes=num_classes)
+x = arcface_layer(x)
+model = keras.Model(inputs=inputs, outputs=x)
 
-grads = tape.gradient(loss, model.trainable_weights)
-optimizer.apply_gradients(zip(grads, model.trainable_weights))
+arcface_loss = ArcFaceLoss()
+
+for epoch in range(epochs):
+    for x_batch, y_batch in train_data:
+        
+        with tf.GradientTape() as tape:
+            
+            logits = model(x_batch, training=True)
+            loss = arcface_loss(y_batch, logits)
+        
+        grads = tape.gradient(loss, model.trainable_weights)
+        optimizer.apply_gradients(zip(grads, model.trainable_weights))
 ```
 
 
