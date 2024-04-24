@@ -10,14 +10,19 @@ https://github.com/deepinsight/insightface
 However, MXNet is retired: 
 https://mxnet.apache.org/versions/1.9.1/
 
-Also, there are other implementations for tensorflow as well, however, they are not aplug-n-play layer:
+Also, there are other implementations for tensorflow as well, however, they are not a plug-n-play layer:
 https://github.com/yinguobing/arcface
 
 
 ## How to Use
-You need to use the implemented ArcFaceLayer() as the last layer in your model. That's it! 
-ArcFaceLayer() implements a fully connected layer, as described in the paper, and it adds the arc face loss to the model's total loss using the famous self.add_loss() function in tensorflow. So, if you are planning to use ArcFaceLayer() as the last layer of your model, you don't need to add a fully connected layer at the end of your model.
-If you are using Sequential API, using ArcFaceLayer is as easy as:
+You need to use the implemented ArcFaceLayer() as the last layer in your model and add the implemented ArcFaceLoss in the
+model.compile(). That's it! 
+
+ArcFaceLayer() implements a fully connected layer, as described in the paper, along with some normalizations which is essential to calculate ArcFaceLoss.
+
+ArcFaceLoss provides you with the arc face loss, implemented as the original paper.
+
+If you are planning to use Sequential API, here is the example how you can use the ArcFaceLayer and ArcFaceLoss:
 
 ```python
 # here base_model does not have the last fully connected layer. Rather, ArcFaceLayer acts as a fully connected layer.
