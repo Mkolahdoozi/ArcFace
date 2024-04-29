@@ -15,17 +15,17 @@ https://github.com/yinguobing/arcface
 
 
 ## How to Use
-You need to use the implemented ArcFaceLayer() as the last layer in your model and add the implemented ArcFaceLoss in the
+You need to add the implemented ArcFaceLayer() as the last layer in your model and add the implemented ArcFaceLoss in the
 model.compile(). That's it! 
 
-ArcFaceLayer() implements a fully connected layer, as described in the paper, along with some normalizations which are essential to calculate ArcFaceLoss.
+ArcFaceLayer() implements a fully-connected like layer, as described in the paper, along with some normalizations which are essential to calculate ArcFaceLoss.
 
 ArcFaceLoss provides you with the arc face loss, implemented in accordance with the original paper.
 
 If you are planning to use Sequential API, here is an example on how you can use the ArcFaceLayer and ArcFaceLoss:
 
 ```python
-# here base_model does not have the last fully connected layer. Rather, ArcFaceLayer acts as a fully connected layer.
+# here base_model is the base model you are using. We add ArcFaceLayer as the last layer.
 from ArcFace import ArcFaceLayer, ArcFaceLoss
 
 model = keras.Sequential([
@@ -37,7 +37,7 @@ model.compile(loss=ArcFaceLoss())
 model.fit(x, y, epochs=100)
 ```
 
-If you are writing a training loop from scratch, or customizing training_step(), you have to 
+If you are implementing a training loop from scratch, or customizing training_step(), you have to 
 take care of the ArcFaceLayer and ArcFaceLoss manually. Here is an example:
 
 ```python

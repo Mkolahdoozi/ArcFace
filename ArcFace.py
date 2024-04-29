@@ -3,9 +3,9 @@ import tensorflow as tf
 from math import pi
 
 
-# ArcFaceLayer acts as a fully connected layer! In addition, it is applying some normalizations that is necessary for
-# computing Arc Face loss. Please use this layer as the last layer of your model, the output of which you use
-# to do the predictions.
+# ArcFaceLayer is a fully-connected like layer, which applies some normalizations that is necessary for
+# computing Arc Face loss. Please add this layer as the last layer to your model.
+
 class ArcFaceLayer(keras.layers.Layer):
     def __init__(self, num_classes=3, **kwargs):
         super(ArcFaceLayer, self).__init__(**kwargs)
@@ -52,7 +52,7 @@ class ArcFaceLayer(keras.layers.Layer):
 # This loss works as expected if you use the implemented ArcFaceLayer as the last layer of your model!
 # example:
 
-# keras.Sequential([base_model(), ArcFaceLayer()]) # ArcFaceLayer acts as a dense layer.
+# keras.Sequential([base_model(), ArcFaceLayer()]) # ArcFaceLayer is doing the calculations necessary for ArcFaceLoss.
 
 # if you are planning to use model.fit() API, simply pass ArcFaceLoss to the model.compile(). Example:
 
@@ -65,7 +65,7 @@ class ArcFaceLayer(keras.layers.Layer):
 #   loss = ArcFaceLoss_object(y_true, y_pred)
 
 # In the above code y_true is one-hot encoded labels (it must be a one-hot encoded matrix), y_pred is the output of
-# ArcFaceLayer() (last layer of the model) and ArcFaceLoss_object is the object of the ArcFaceLoss class.
+# ArcFaceLayer() and ArcFaceLoss_object is the object of the ArcFaceLoss class.
 class ArcFaceLoss(keras.losses.Loss):
     def __init__(self, margin=0.5, s=64, name='arc_face_loss', **kwargs):
         super(ArcFaceLoss, self).__init__(name, **kwargs)
